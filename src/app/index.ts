@@ -4,6 +4,8 @@ import express from 'express';
 import bodyParser  from 'body-parser';
 import { User } from './user';
 import cors from 'cors'
+import { GraphQLContext } from '../interfaces';
+import JWTService from '../services/jwtService';
 
 export async function serverInit(){
     const app = express();
@@ -11,7 +13,7 @@ export async function serverInit(){
     app.use(cors())
 
 
-    const graphQLServer = new ApolloServer({
+    const graphQLServer = new ApolloServer<GraphQLContext>({
         typeDefs: `
             ${User.types}
 
@@ -31,6 +33,17 @@ export async function serverInit(){
       await graphQLServer.start();
 
 
-    app.use("/graphql",expressMiddleware(graphQLServer))
+    app.use("/graphql",expressMiddleware(graphQLServer,{
+        context:async ({req,res}) => {
+            const authHeader = req.headers?.authorization || req.headers?.authorisation;
+            let token = (authHeader as string)?.split("Bearer ")[1];
+           
+
+        // If the `authorization` header is present, decode the token, otherwise set `user` to null
+        const user = authHeader ? JWTService.decodeToken(token) : null;
+
+        return { user };
+        }
+    }))
     return app;
 }
