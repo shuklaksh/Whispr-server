@@ -32,7 +32,7 @@ const mutations = {
 const extraResolvers = {
     Tweet: {
         author:  async (parent: Tweet) => {
-            const user = prismaClient.user.findUnique({where: {id: parent.authorId}})
+            const user = await prismaClient.user.findUnique({where: {id: parent?.authorId}})
             return user; 
         }
     }

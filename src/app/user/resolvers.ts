@@ -58,6 +58,10 @@ const queries = {
         if(!id) return null
         let user = await prismaClient.user.findUnique({where: {email:  cntx.user?.email}})
         return user;
+    },
+    getUserById: async(parent: any,{id}: {id: string}, cntx: GraphQLContext) => {
+        let user = await prismaClient.user.findUnique({where: {id: id }})
+        return user;
     }
 }
 const mutations = {
@@ -67,7 +71,7 @@ const mutations = {
 const extraResolvers = {
     User: {
         tweets:  async (parent: User) => {
-            const tweets = prismaClient.tweet.findMany({where: {author: {id: parent.id}}})
+            const tweets = await prismaClient.tweet.findMany({where: {author: {id: parent.id}}})
             return tweets; 
         }
     }
