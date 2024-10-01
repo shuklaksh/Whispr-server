@@ -1,24 +1,19 @@
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { Tweet } from "@prisma/client";
-import dotenv from 'dotenv';
 import { prismaClient } from "../../client/db";
 import { GraphQLContext } from "../../interfaces";
-dotenv.config();
+import UserService from "../../services/user";
+import TweetService, { CreateTweetPayload } from "../../services/tweet";
 
-interface CreateTweetPayload{
-    content: string
-    imageURL?: string
-}
 
 const s3Client = new S3Client({
-    region: 'ap-south-1',
-    credentials: {accessKeyId: process.env.AWS_ACCESS_KEY! , secretAccessKey: process.env.AWS_SECRET_KEY!}
+    region: process.env.AWS_DEFAULT_REGION,
 });
 const queries = {
     getAllTweets: async (parent: any,args: any, cntx: GraphQLContext) => {
         if(!cntx.user) throw new Error("You're not logged in");
-        const tweets = await prismaClient.tweet.findMany({orderBy: {createdAt: 'desc'}});
+        const tweets = await TweetService.getAllTweet(); 
         return tweets;
     },
     getSignedURL:  async (parent: any,{imageType}: {imageType: string}, cntx: GraphQLContext) => {
@@ -38,21 +33,9 @@ const queries = {
 const mutations = { 
     createTweet: async (parent: any,{payload}: {payload: CreateTweetPayload}, cntx: GraphQLContext) => {
         if(!cntx.user) throw new Error("You are not authenticated");
-        
-        try{
-            const tweet = await prismaClient.tweet.create({
-                data: {
-                    content: payload.content,
-                    imageURL: payload.imageURL, 
-                    author: {connect: {id: cntx.user.id}}
-                }
-            })
-            return tweet 
-        }
-        catch(err) {
-            console.log(err);
-            return null;
-        }
+        const tweet  = TweetService.createTweet({...payload, userId: cntx?.user?.id})
+
+        return tweet;
         
         
     }
@@ -61,7 +44,7 @@ const mutations = {
 const extraResolvers = {
     Tweet: {
         author:  async (parent: Tweet) => {
-            const user = await prismaClient.user.findUnique({where: {id: parent?.authorId}})
+            const user = await UserService.getUserById(parent?.authorId)
             return user; 
         }
     }
