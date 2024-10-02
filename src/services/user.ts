@@ -45,7 +45,7 @@ class UserService {
             email: data.email!,
             firstName: data.given_name!,
             lastName: data.family_name!,
-            profileImageURL: data.picture!,
+            profileImageUrl: data.picture!,
         },
       });
     }
@@ -65,20 +65,20 @@ class UserService {
     return prismaClient.user.findUnique({ where: { id } });
   }
 
-//   public static followUser(from: string, to: string) {
-//     return prismaClient.follows.create({
-//       data: {
-//         follower: { connect: { id: from } },
-//         following: { connect: { id: to } },
-//       },
-//     });
-//   }
+  public static followUser(from: string, to: string) {
+    return prismaClient.follows.create({
+      data: {
+        follower: { connect: { id: from } },
+        following: { connect: { id: to } },
+      },
+    });
+  }
 
-//   public static unfollowUser(from: string, to: string) {
-//     return prismaClient.follows.delete({
-//       where: { followerId_followingId: { followerId: from, followingId: to } },
-//     });
-//   }
+  public static unFollowUser(from: string, to: string) {
+    return prismaClient.follows.delete({
+      where: { followerId_followingId: { followerId: from, followingId: to } },
+    });
+  }
 }
 
 export default UserService;

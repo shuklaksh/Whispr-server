@@ -1,7 +1,6 @@
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { Tweet } from "@prisma/client";
-import { prismaClient } from "../../client/db";
 import { GraphQLContext } from "../../interfaces";
 import UserService from "../../services/user";
 import TweetService, { CreateTweetPayload } from "../../services/tweet";
@@ -12,7 +11,6 @@ const s3Client = new S3Client({
 });
 const queries = {
     getAllTweets: async (parent: any,args: any, cntx: GraphQLContext) => {
-        if(!cntx.user) throw new Error("You're not logged in");
         const tweets = await TweetService.getAllTweet(); 
         return tweets;
     },
@@ -34,10 +32,7 @@ const mutations = {
     createTweet: async (parent: any,{payload}: {payload: CreateTweetPayload}, cntx: GraphQLContext) => {
         if(!cntx.user) throw new Error("You are not authenticated");
         const tweet  = TweetService.createTweet({...payload, userId: cntx?.user?.id})
-
         return tweet;
-        
-        
     }
 }
 
