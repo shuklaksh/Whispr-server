@@ -5,5 +5,5 @@
 
 */
 -- AlterTable
-ALTER TABLE "User" DROP COLUMN "profileImageURL",
+ALTER TABLE "User" DROP COLUMN "profileImageUrl",
 ADD COLUMN     "profileImageUrl" TEXT;
